@@ -48,6 +48,20 @@ function tap.packet(tvb, pinfo, tree)
     -- if no ssid field, ssid=nil, we should skip it.
     if not ssid then return end
 
+    local ssid_display = ssid.display
+
+    -- starting in wireshark 4, ssid_f() returns an all-zeros string for blank SSIDs,
+    -- detect this and set it back to the empty string which was previously returned
+    if ssid_display == "0000000000000000000000000000000000000000000000000000000000000000" then
+        ssid_display = ""
+    end
+
+    -- starting in wireshark 4, ssid_f() returns non-blank SSID's wrapped in double-quotes ("),
+    -- detect this and set it back to the SSID without the surrounding double-quotes
+    if #ssid_display >= 2 and string.sub(ssid_display,1,1) == '"' and string.sub(ssid_display,-1,-1) == '"' then
+        ssid_display = string.sub(ssid_display,2,-2)
+    end
+
     -- bssid mac address as a string
     local b = tostring(bssid)
     if string.sub(b,1,6) == "ff:ff:" then return end
@@ -62,7 +76,7 @@ function tap.packet(tvb, pinfo, tree)
         networks[b].ssid = ""
     else
         networks[b].hidden = false
-        networks[b].ssid = ssid.display
+        networks[b].ssid = ssid_display
     end
 
     local ds_channel, signal, noise, snr = wlan_ds_current_channel_f(), wlan_radio_signal_dbm_f(), wlan_radio_noise_dbm_f(), wlan_radio_snr_dbm_f()
