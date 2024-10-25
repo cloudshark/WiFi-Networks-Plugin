@@ -2,7 +2,7 @@
 -- Version info
 --
 local wpa_plugin_info = {
-  version = "1.0.0",
+  version = "1.0.1",
 }
 
 set_plugin_info(wpa_plugin_info)
